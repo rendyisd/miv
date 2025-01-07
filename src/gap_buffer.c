@@ -42,19 +42,18 @@ void gap_buffer_grow(gap_buffer *gb)
     size_t right_side_size = gb->buffer_size - gap_right_offset;
 
     void *temp = realloc(gb->buffer, gb->buffer_size + ONE_KB);
-
-    if(temp != NULL) {
-        gb->buffer = temp;
-        gb->buffer_size += ONE_KB;
-        gb->gap_left = gb->buffer + gap_left_offset;
-        gb->gap_right = gb->buffer + gap_right_offset + ONE_KB;
-
-        //Move the right-side content to its new place
-        memmove(gb->gap_right, gb->buffer + gap_right_offset, right_side_size);
-    }    
-    else {
+    if(!temp) {
         fprintf(stderr, "Failed to realloc memory.");
-    }
+        return;
+    }    
+
+    gb->buffer = temp;
+    gb->buffer_size += ONE_KB;
+    gb->gap_left = gb->buffer + gap_left_offset;
+    gb->gap_right = gb->buffer + gap_right_offset + ONE_KB;
+
+    //Move the right-side content to its new place
+    memmove(gb->gap_right, gb->buffer + gap_right_offset, right_side_size);
 }
 
 void gap_buffer_destroy(gap_buffer *gb)
