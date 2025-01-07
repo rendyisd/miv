@@ -1,7 +1,8 @@
-#include "gap_buffer.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+
+#include "gap_buffer.h"
 
 struct gap_buffer {
     char *buffer;
@@ -12,16 +13,23 @@ struct gap_buffer {
 
 gap_buffer* gap_buffer_new()
 {
-    gap_buffer *gb;
+    gap_buffer *gb = malloc(sizeof(gap_buffer));
 
-    if((gb = malloc(sizeof *gb)) != NULL) {
-        gb->buffer_size = ONE_KB;
-        gb->gap_left = gb->buffer;
-        gb->gap_right = gb->buffer + ONE_KB;
+    if(!gb) {
+        fprintf(stderr, "Failed to allocate memory for gap_buffer.\n");
+        return NULL;
     }
-    else {
-        fprintf(stderr, "Failed to allocate memory.");
+    /* Init the buffer with the size of 1 KB */
+    gb->buffer = malloc(ONE_KB);
+    if(!gb->buffer) {
+        fprintf(stderr, "Failed to allocate memory for buffer.\n");
+        free(gb);
+        return NULL;
     }
+
+    gb->buffer_size = ONE_KB;
+    gb->gap_left = gb->buffer;
+    gb->gap_right = gb->buffer + ONE_KB;
 
     return gb;
 }

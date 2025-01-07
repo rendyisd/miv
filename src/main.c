@@ -1,6 +1,8 @@
 #include <unistd.h>
 #include <stdio.h>
+
 #include "gap_buffer.h"
+
 int main()
 {
     gap_buffer *gb = gap_buffer_new();
