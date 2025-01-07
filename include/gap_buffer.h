@@ -1,7 +1,7 @@
 #ifndef GAP_BUFFER_H
 #define GAP_BUFFER_H
 
-#define ONE_KB 5
+#define ONE_KB 1024
 
 typedef struct gap_buffer gap_buffer;
 
