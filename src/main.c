@@ -6,6 +6,7 @@
 int main()
 {
     gap_buffer *gb = gap_buffer_new();
+    gap_buffer_debug(gb);
     gap_buffer_destroy(gb);
     printf("Gap buffer test.\n");
 
