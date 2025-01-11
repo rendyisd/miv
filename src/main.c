@@ -5,7 +5,7 @@
 
 int main()
 {
-    gap_buffer *gb = gap_buffer_new();
+    gap_buffer *gb = gap_buffer_new(16);
 
     gap_buffer_print(gb);
 

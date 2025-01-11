@@ -21,7 +21,7 @@ struct gap_buffer {
     char *gap_right;
 };
 
-gap_buffer *gap_buffer_new()
+gap_buffer *gap_buffer_new(size_t initial_size)
 {
     gap_buffer *gb = malloc(sizeof(gap_buffer));
 
@@ -29,15 +29,14 @@ gap_buffer *gap_buffer_new()
         fprintf(stderr, "Failed to allocate memory for gap_buffer.\n");
         return NULL;
     }
-    /* Init the buffer with the size of 1 KB */
-    gb->buffer = malloc(GAP_SIZE);
+    gb->buffer = malloc(initial_size);
     if(!gb->buffer) {
         fprintf(stderr, "Failed to allocate memory for buffer.\n");
         free(gb);
         return NULL;
     }
 
-    gb->buffer_size = GAP_SIZE;
+    gb->buffer_size = initial_size;
     gb->gap_left = gb->buffer;
     gb->gap_right = gb->buffer + gb->buffer_size - 1;
 
@@ -75,12 +74,13 @@ int gap_buffer_grow(gap_buffer *gb)
 int gap_buffer_insert(gap_buffer *gb, char *text, size_t len)
 {
     size_t gap_size = gb->gap_right - gb->gap_left + 1; 
-    if(len >= gap_size) {
+    while(len >= gap_size) {
         int ret_code = gap_buffer_grow(gb);
         if(ret_code == -1) {
             fprintf(stderr, "Failed to grow gap size.");
             return -1;
         }
+        gap_size = gb->gap_right - gb->gap_left + 1;
     }
     memcpy(gb->gap_left, text, len);
     gb->gap_left += len;
