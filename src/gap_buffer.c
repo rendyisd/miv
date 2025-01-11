@@ -123,6 +123,23 @@ void gap_buffer_move_gap(gap_buffer *gb, size_t len, int direction)
     }
 }
 
+char *gap_buffer_get_text(gap_buffer *gb)
+{
+    size_t left_length = (gb->gap_left - gb->buffer);
+    size_t right_length = (gb->buffer + gb->buffer_size - 1 - gb->gap_right);
+    size_t text_length = left_length + right_length;
+    
+    char *clear_text = malloc(text_length);
+    if(!clear_text) {
+        fprintf(stderr, "Failed to allocate memory for clear text.\n");
+        return NULL;
+    }
+    memcpy(clear_text, gb->buffer, left_length);
+    memcpy(clear_text + left_length, gb->gap_right + 1, right_length);
+
+    return clear_text;
+}
+
 void gap_buffer_print(gap_buffer *gb)
 {
     char *c_ptr = gb->buffer;

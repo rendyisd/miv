@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <stdio.h>
 
 #include "gap_buffer.h"
 
@@ -32,8 +33,7 @@ int main()
     gap_buffer_move_gap(gb, 5, D_RIGHT);
     gap_buffer_print(gb);
 
-    gap_buffer_delete(gb, 13, D_LEFT);
-    gap_buffer_print(gb);
+    printf("Clear text: %s\n", gap_buffer_get_text(gb));
 
     gap_buffer_debug(gb);
 

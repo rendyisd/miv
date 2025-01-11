@@ -22,7 +22,11 @@ int gap_buffer_insert(gap_buffer *, char *, size_t);
 void gap_buffer_delete(gap_buffer *, size_t, int);
 /* Move gap, or cursor(?) in text editor context */
 void gap_buffer_move_gap(gap_buffer *, size_t, int);
-/* Print buffer content */
+/* Get clear text from gap_buffer */
+char *gap_buffer_get_text(gap_buffer *);
+
+
+/* Print buffer content for debugging purpose */
 void gap_buffer_print(gap_buffer *);
 /* Just a debug function */
 void gap_buffer_debug(gap_buffer *);
