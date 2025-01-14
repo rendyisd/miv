@@ -1,3 +1,5 @@
+src/test_file.txt
+src/temp.c
 compile_commands.json
 build/
 .cache/

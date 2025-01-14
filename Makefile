@@ -3,14 +3,15 @@ EXEC = build/text-editor
 
 SRC = src/main.c src/gap_buffer.c 
 OBJ = $(SRC:src/%.c=build/%.o)
-INC = -Iinclude/
+CFLAGS = -Wall -Wextra -Iinclude/
+LDFLAGS = -lncurses
 
 build/%.o: src/%.c
 	mkdir -p build/
-	$(CC) $(INC) -o $@ -c $<
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(EXEC): $(OBJ)
-	$(CC) $(INC) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) 
 
 clean:
 	rm -rf build/
