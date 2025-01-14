@@ -52,7 +52,7 @@ void gap_buffer_destroy(gap_buffer *gb)
     free(gb);
 }
 
-int gap_buffer_grow(gap_buffer *gb)
+static int gap_buffer_grow(gap_buffer *gb)
 { 
     size_t gap_left_offset = gb->gap_left - gb->buffer;
     size_t gap_right_offset = gb->gap_right - gb->buffer;

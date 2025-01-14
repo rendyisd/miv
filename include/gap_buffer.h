@@ -14,8 +14,6 @@ typedef struct gap_buffer gap_buffer;
 gap_buffer *gap_buffer_new(size_t);
 /* Free allocated memory of gap_buffer */
 void gap_buffer_destroy(gap_buffer *);
-/* Grow gap by GAP_SIZE */
-int gap_buffer_grow(gap_buffer *);
 /* Insert text of size_t, text is always inserted to the left side of gap */
 int gap_buffer_insert(gap_buffer *, char *, size_t);
 /* Delete text of size_t, with D_LEFT and D_RIGHT to delete text to the left/right side of gap */
