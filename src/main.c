@@ -1,43 +1,47 @@
-#include <unistd.h>
 #include <stdio.h>
-
+#include <ncurses.h>
+#include <stdlib.h>
 #include "gap_buffer.h"
 
 int main()
 {
-    gap_buffer *gb = gap_buffer_new(16);
+    FILE *file_ptr;
+    file_ptr = fopen("src/test_file.txt", "r");
 
-    gap_buffer_print(gb);
+    if(!file_ptr) {
+        fprintf(stderr, "Failed to open file.\n");
+        exit(EXIT_FAILURE);
+    }
 
-    char *text_1 = "Hello";
-    gap_buffer_insert(gb, text_1, 5);
-    gap_buffer_print(gb);
+    if(fseek(file_ptr, 0L, SEEK_END) == -1) {
+        fprintf(stderr, "Failed to seek to the EOF.\n");
+        exit(EXIT_FAILURE);
+    }
 
-    gap_buffer_move_gap(gb, 3, D_LEFT);
-    gap_buffer_print(gb);
+    long bufsize = ftell(file_ptr);
+    gap_buffer *file_gb = gap_buffer_new((size_t) bufsize);
+    char *temp_buffer = malloc((size_t)bufsize);
+ 
+    if(fseek(file_ptr, 0L, SEEK_SET) == -1) {
+        fprintf(stderr, "Failed to seek to the starting of file.\n");
+        exit(EXIT_FAILURE);
+    }
     
-    char *text_2 = "y, bro";
-    gap_buffer_insert(gb, text_2, 6);
-    gap_buffer_print(gb);
+    size_t size_written = fread(temp_buffer, sizeof(char), bufsize, file_ptr);
+    if(ferror(file_ptr) != 0) {
+        fprintf(stderr, "Failed reading to buffer");
+        exit(EXIT_FAILURE);
+    }
+    // Has to be this way because gap_buffer is not defined in .h for this file to access directly into its buffer.
+    // Possible solutions are: 1) define gap_buffer in its header. 2) make a function that returns pointer to buffer
+    // Or just let it be like this, but it essentially reading the file twice
+    gap_buffer_insert(file_gb, temp_buffer, bufsize); 
+    gap_buffer_print(file_gb);
+    gap_buffer_debug(file_gb);
 
-    gap_buffer_delete(gb, 3, D_RIGHT);
-    gap_buffer_print(gb);
+    free(temp_buffer);
 
-    gap_buffer_move_gap(gb, 5, D_LEFT);
-    gap_buffer_print(gb);
-
-    char *text_3 = "12345678";
-    gap_buffer_insert(gb, text_3, 8);
-    gap_buffer_print(gb);
-
-    gap_buffer_move_gap(gb, 5, D_RIGHT);
-    gap_buffer_print(gb);
-
-    printf("Clear text: %s\n", gap_buffer_get_text(gb));
-
-    gap_buffer_debug(gb);
-
-    gap_buffer_destroy(gb);
+    fclose(file_ptr);
 
     return 0;
 }
