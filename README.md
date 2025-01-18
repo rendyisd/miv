@@ -7,3 +7,4 @@ Text editor on the terminal, made with gap buffer. Akin to vim, as an attempt by
 - [Kilo source code](https://github.com/snaptoken/kilo-src/tree/master)
 - [Vim source code](https://github.com/vim/vim)
 - [The Craft of Text Editing](https://www.finseth.com/craft/craft.pdf)
+- [ANSI Escape Sequences Cheat Sheet](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797)
