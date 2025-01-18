@@ -2,28 +2,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "gap_buffer.h"
+#include "buffer.h"
 
-/*
-      The entirety of the gap_buffer
-      _______________________________
-     |                               |
-     Hello, ____________________world!
-            ^                  ^
-            |                  |
-         gap_left          gap_right
-*/
-
-struct gap_buffer {
-    char *buffer;
-    size_t buffer_size;
-    char *gap_left;
-    char *gap_right;
-};
-/*
- * TODO(?): This might break if initial_size is bigger than what size_t can contain,
- * since most function that return file buffer size return type of long
- */
 gap_buffer *gap_buffer_new(size_t initial_size)
 {
     gap_buffer *gb = malloc(sizeof(gap_buffer));

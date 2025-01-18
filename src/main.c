@@ -1,47 +1,18 @@
 #include <stdio.h>
-#include <ncurses.h>
-#include <stdlib.h>
-#include "gap_buffer.h"
+#include <unistd.h>
+#include "miv.h"
 
-int main()
+int main(int argc, char *argv[])
 {
-    FILE *file_ptr;
-    file_ptr = fopen("src/test_file.txt", "r");
+    enable_raw_mode();
+    write(STDOUT_FILENO, "\x1b[2J", 4); // ANSI escape sequences: Clear terminal
+    write(STDOUT_FILENO, "\x1b[H", 3); // ANSI escape sequences: Move cursor to the top left
 
-    if(!file_ptr) {
-        fprintf(stderr, "Failed to open file.\n");
-        exit(EXIT_FAILURE);
+    char c;
+
+    while(read(STDIN_FILENO, &c, 1) == 1 && c != 'q') {
+        printf("Pressed: %c\n", c);
     }
-
-    if(fseek(file_ptr, 0L, SEEK_END) == -1) {
-        fprintf(stderr, "Failed to seek to the EOF.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    long bufsize = ftell(file_ptr);
-    gap_buffer *file_gb = gap_buffer_new((size_t) bufsize);
-    char *temp_buffer = malloc((size_t)bufsize);
- 
-    if(fseek(file_ptr, 0L, SEEK_SET) == -1) {
-        fprintf(stderr, "Failed to seek to the starting of file.\n");
-        exit(EXIT_FAILURE);
-    }
-    
-    size_t size_written = fread(temp_buffer, sizeof(char), bufsize, file_ptr);
-    if(ferror(file_ptr) != 0) {
-        fprintf(stderr, "Failed reading to buffer");
-        exit(EXIT_FAILURE);
-    }
-    // Has to be this way because gap_buffer is not defined in .h for this file to access directly into its buffer.
-    // Possible solutions are: 1) define gap_buffer in its header. 2) make a function that returns pointer to buffer
-    // Or just let it be like this, but it essentially reading the file twice
-    gap_buffer_insert(file_gb, temp_buffer, bufsize); 
-    gap_buffer_print(file_gb);
-    gap_buffer_debug(file_gb);
-
-    free(temp_buffer);
-
-    fclose(file_ptr);
 
     return 0;
 }

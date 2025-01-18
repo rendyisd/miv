@@ -1,7 +1,7 @@
 CC = gcc
 EXEC = build/miv
 
-SRC = src/main.c src/gap_buffer.c 
+SRC = src/main.c src/buffer.c src/miv.c 
 OBJ = $(SRC:src/%.c=build/%.o)
 CFLAGS = -Wall -Wextra -Iinclude/
 

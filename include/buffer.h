@@ -8,7 +8,35 @@
 #define D_LEFT 1
 #define D_RIGHT 2
 
+/*
+      The entirety of the gap_buffer
+      _______________________________
+     |                               |
+     Hello, ____________________world!
+            ^                  ^
+            |                  |
+         gap_left          gap_right
+*/
+
 typedef struct gap_buffer gap_buffer;
+typedef struct miv_row miv_row;
+
+struct gap_buffer {
+    char *buffer;
+    size_t buffer_size;
+    char *gap_left;
+    char *gap_right;
+};
+
+struct miv_row {
+    gap_buffer *gb;
+    miv_row *prev;
+    miv_row *next;
+};
+
+typedef struct gap_buffer gap_buffer;
+/* Doubly linked list that represents each row. Each row is separated by a newline */
+typedef struct miv_row miv_row;
 
 /* Create a new gap_buffer and return its pointer */
 gap_buffer *gap_buffer_new(size_t);
