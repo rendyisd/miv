@@ -12,11 +12,11 @@
 
 static struct termios orig_termios;
 
-typedef struct miv_screen {
-    miv_row *top_on_display;
+struct miv_viewport {
+    struct miv_row *top_on_display;
     int n_rows;
     int n_cols;
-} miv_screen;
+};
 
 void die(const char *s)
 {
