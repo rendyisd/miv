@@ -1,56 +1,66 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "file_io.h"
+#include "buffer.h"
 
-//void temporary()
-//{
-//    FILE *file_ptr;
-//    file_ptr = fopen("src/test_file.txt", "r");
-//
-//    if(!file_ptr) {
-//        fprintf(stderr, "Failed to open file.\n");
-//        exit(EXIT_FAILURE);
-//    }
-//
-//    if(fseek(file_ptr, 0L, SEEK_END) == -1) {
-//        fprintf(stderr, "Failed to seek to the EOF.\n");
-//        exit(EXIT_FAILURE);
-//    }
-//
-//    long bufsize = ftell(file_ptr);
-//    gap_buffer *file_gb = gap_buffer_new((size_t) bufsize);
-//    char *temp_buffer = malloc((size_t)bufsize);
-// 
-//    if(fseek(file_ptr, 0L, SEEK_SET) == -1) {
-//        fprintf(stderr, "Failed to seek to the starting of file.\n");
-//        exit(EXIT_FAILURE);
-//    }
-//    
-//    size_t size_written = fread(temp_buffer, sizeof(char), bufsize, file_ptr);
-//    if(ferror(file_ptr) != 0) {
-//        fprintf(stderr, "Failed reading to buffer");
-//        exit(EXIT_FAILURE);
-//    }
-//    // Has to be this way because gap_buffer is not defined in .h for this file to access directly into its buffer.
-//    // Possible solutions are: 1) define gap_buffer in its header. 2) make a function that returns pointer to buffer
-//    // Or just let it be like this, but it essentially reading the file twice
-//    gap_buffer_insert(file_gb, temp_buffer, bufsize); 
-//    gap_buffer_print(file_gb);
-//    gap_buffer_debug(file_gb);
-//
-//    free(temp_buffer);
-//    fclose(file_ptr);
-//    gap_buffer_destroy(file_gb);
-//}
+static char *read_line(FILE *fp)
+{
+    char *buf = NULL;
+    char tmpbuf[32];
+    
+    size_t total_buf_len = 0;
+    int is_newline = 0;
+    while (is_newline == 0) {
+        fgets(tmpbuf, 32, fp);
+        size_t tmpbuf_len = strlen(tmpbuf);
 
-int open_file_to_buffer(char *filename)
+        if (tmpbuf[tmpbuf_len - 1] == '\n' || feof(fp))
+            is_newline = 1;
+
+        char *new_buf = realloc(buf, total_buf_len + tmpbuf_len + is_newline); // is_newline is used to reserve space for null terminator
+        if (!new_buf) {
+            free(buf);
+            fprintf(stderr, "Failed to reallocate data for read_line.");
+            return NULL;
+        }
+        buf = new_buf;
+        memcpy(buf + total_buf_len, tmpbuf, tmpbuf_len);
+        total_buf_len += tmpbuf_len;
+    }
+
+    if (buf)
+        buf[total_buf_len] = '\0';
+
+    return buf;
+}
+
+struct miv_row *open_file_to_buffer(char *filename)
 {
     FILE *fhandle = fopen(filename, "r");
 
     if (!fhandle)
-        return -1;
+        return NULL;
     
-     
+    struct miv_row *mr_head = miv_row_new();
+    struct miv_row *mr_prev = NULL;
+    struct miv_row *mr = NULL;
+    while (!feof(fhandle)) {
+        if (!mr) 
+            mr = mr_head;
+        else
+            mr = miv_row_new();
+        
+        char *line = read_line(fhandle);
+        gap_buffer_insert(mr->gb, line, strlen(line));
+        mr->prev = mr_prev;
+        if(mr_prev)
+            mr_prev->next = mr;
+        
+        mr_prev = mr;
+    }
+    fclose(fhandle);
 
-    return 0;
+    return mr_head;
 }

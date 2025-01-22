@@ -18,7 +18,7 @@ struct miv_viewport {
     int n_cols;
 };
 
-void die(const char *s)
+static void die(const char *s)
 {
     perror(s);
     exit(EXIT_FAILURE);
@@ -49,7 +49,7 @@ void enable_raw_mode()
     write(STDOUT_FILENO, "\x1b[?1049h", 8); // ANSI escape sequences: Enables alternative screen buffer
 }
 
-int get_cursor_position(int *rows, int *cols)
+static int get_cursor_position(int *rows, int *cols)
 {
     char buf[32];
     unsigned int i = 0;
@@ -75,9 +75,23 @@ int get_cursor_position(int *rows, int *cols)
     return 0;
 }
 
-int get_screen_size(int *rows, int *cols)
+static int get_screen_size(int *rows, int *cols)
 {
     if(write(STDOUT_FILENO, "\x1b[999C\x1b[999B", 12) != 12) // ANSI escape sequences: moves cursor 999 right and 999 down
         return -1;
     return get_cursor_position(rows, cols);
+}
+
+// TODO: WIP, not final functionality
+int redraw_screen(struct miv_row *mr_head)
+{
+    if (!mr_head)
+        return -1;
+
+    struct miv_row *mr = mr_head;
+    do {
+        printf("%s", gap_buffer_get_text(mr->gb)); 
+        mr = mr->next;
+    } while (mr);
+    return 0;
 }

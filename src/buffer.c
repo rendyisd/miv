@@ -114,13 +114,14 @@ char *gap_buffer_get_text(struct gap_buffer *gb)
     size_t right_length = (gb->buffer + gb->buffer_size - 1 - gb->gap_right);
     size_t text_length = left_length + right_length;
     
-    char *clear_text = malloc(text_length);
+    char *clear_text = malloc(text_length + 1); // Include null terminator
     if (!clear_text) {
         fprintf(stderr, "Failed to allocate memory for clear text.\n");
         return NULL;
     }
     memcpy(clear_text, gb->buffer, left_length);
     memcpy(clear_text + left_length, gb->gap_right + 1, right_length);
+    clear_text[text_length] = '\0';
 
     return clear_text;
 }
