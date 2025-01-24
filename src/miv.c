@@ -13,9 +13,14 @@
 static struct termios orig_termios;
 
 struct miv_viewport {
-    struct miv_row *top_on_display;
-    int n_rows;
-    int n_cols;
+    struct miv_row *top_on_screen;
+    struct miv_row *on_cursor;
+    unsigned int nrows;
+    unsigned int ncols;
+    unsigned int xoffset;
+    unsigned int yoffset;
+    unsigned int cursorx;
+    unsigned int cursory;
 };
 
 static void die(const char *s)
@@ -27,13 +32,11 @@ static void die(const char *s)
 static void disable_raw_mode()
 {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios); 
-    write(STDOUT_FILENO, "\x1b[?1049l", 8); /* ANSI escape sequences: Disables alternative screen buffer */
 }
 
 void enable_raw_mode()
 {
     tcgetattr(STDIN_FILENO, &orig_termios);
-    atexit(disable_raw_mode);
 
     struct termios raw = orig_termios;
 
@@ -48,7 +51,7 @@ void enable_raw_mode()
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
-static int get_cursor_position(int *rows, int *cols)
+static int get_cursor_position(unsigned int *rows, unsigned int *cols)
 {
     char buf[32];
     unsigned int i = 0;
@@ -73,31 +76,42 @@ static int get_cursor_position(int *rows, int *cols)
     return 0;
 }
 
-static int get_screen_size(int *rows, int *cols)
+static int get_screen_size(unsigned int *rows, unsigned int *cols)
 {
     if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B", 12) != 12) /* ANSI escape sequences: moves cursor 999 right and 999 down */
         return -1;
     return get_cursor_position(rows, cols);
 }
 
-void prepare_screen()
+static void destroy_screen()
 {
+    disable_raw_mode();
+    write(STDOUT_FILENO, "\x1b[J", 3); /* ANSI escape sequences: Erase display */
+    write(STDOUT_FILENO, "\x1b[?1049l", 8); /* ANSI escape sequences: Disables alternative screen buffer */
+}
+
+struct miv_viewport *prepare_screen(struct miv_row *mr)
+{
+    atexit(destroy_screen);
     write(STDOUT_FILENO, "\x1b[?1049h", 8); /* ANSI escape sequences: Enables alternative screen buffer */ 
     enable_raw_mode();
 
-    int *rows = malloc(sizeof(int));
-    int *cols = malloc(sizeof(int));
-
-    get_screen_size(rows, cols);
+    struct miv_viewport *vp = malloc(sizeof(struct miv_viewport));
+    vp->top_on_screen = mr;
+    vp->on_cursor = mr;
+    get_screen_size(&vp->nrows, &vp->ncols);
+    vp->xoffset = 0;
+    vp->yoffset = 0;
+    vp->cursorx = 1;
+    vp->cursory = 1;
     write(STDOUT_FILENO, "\x1b[H", 3); /* ANSI escape sequences: Move cursor to the top left */
-    //printf("Rows: %d | Cols: %d\n", *rows, *cols);
 
-    free(rows);
-    free(cols);
+    return vp;
 }
 
+
 /* TODO: WIP, not final functionality */
-int redraw_screen(struct miv_row *mr_head)
+int render_screen(struct miv_row *mr_head)
 {
     if (!mr_head)
         return -1;
