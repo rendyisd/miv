@@ -6,7 +6,8 @@ Not even designed like vim(?). I had to just give it a name and came up with bac
 Just a personal project for self salvation.
 
 ## References
+- [Console Virtual Terminal Sequences - Microsoft](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
+- [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)
 - [Kilo source code](https://github.com/snaptoken/kilo-src/tree/master)
 - [Vim source code](https://github.com/vim/vim)
 - [The Craft of Text Editing](https://www.finseth.com/craft/craft.pdf)
-- [ANSI Escape Sequences Cheat Sheet](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797)
