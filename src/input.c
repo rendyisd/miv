@@ -1,9 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /*
  * input.c
  * Handles keyboard and mouse(? probably not anytime soon) input
  */
+#include "miv.h"
 
 enum Key {
     KEY_BACKSPACE = 8,
@@ -30,25 +33,27 @@ static int read_keypress()
         char seq[3];
         seq[0] = getchar();
         seq[1] = getchar();
-        seq[2] = getchar();
 
         if (seq[0] == '[') {
-            if ((seq[1] >= '1' && seq[1] <= '8') && seq[2] == '~') {
-                switch (seq[1]) {
-                case '1':
-                    return KEY_HOME;
-                case '3':
-                    return KEY_DELETE;
-                case '4':
-                    return KEY_END;
-                case '5':
-                    return KEY_PAGEUP;
-                case '6':
-                    return KEY_PAGEDOWN;
-                case '7':
-                    return KEY_HOME;
-                case '8':
-                    return KEY_END;
+            if (seq[1] >= '1' && seq[1] <= '8') {
+                seq[2] = getchar();
+                if (seq[2] == '~') {
+                    switch (seq[1]) {
+                    case '1':
+                        return KEY_HOME;
+                    case '3':
+                        return KEY_DELETE;
+                    case '4':
+                        return KEY_END;
+                    case '5':
+                        return KEY_PAGEUP;
+                    case '6':
+                        return KEY_PAGEDOWN;
+                    case '7':
+                        return KEY_HOME;
+                    case '8':
+                        return KEY_END;
+                    }
                 }
             } else if (seq[1] >= 'A' && seq[1] <= 'H') {
                 switch (seq[1]) {
@@ -75,6 +80,8 @@ static int read_keypress()
 int handle_keypress(struct miv_viewport *vp)
 {
     int c = read_keypress();
+    char temp[2];
+    snprintf(temp, 2, "%c", c);
     
     /* TODO: Newline, also if done in the middle of a line, move right content to newline */
     switch (c) {
@@ -87,6 +94,7 @@ int handle_keypress(struct miv_viewport *vp)
     case KEY_DELETE:
         break;
     case KEY_HOME:
+        exit(EXIT_SUCCESS); // For debugging purpose
         /* Move cursor to start of line */
         break;
     case KEY_END:
@@ -105,13 +113,37 @@ int handle_keypress(struct miv_viewport *vp)
         /* */
         break;
     case KEY_ARROW_LEFT:
-        /* */
+        if (vp->xoffset == 0 && vp->cursorx == 1)
+            return 0;
+        if (vp->cursorx > 1) {
+            vp->cursorx -= 1;
+        } else if (vp->xoffset > 0) {
+            vp->xoffset -= 1;
+        }
+        gap_buffer_move_gap(vp->on_cursor->gb, 1, D_LEFT);
         break;
     case KEY_ARROW_RIGHT:
-        /* */
+        if (vp->xoffset + vp->cursorx >= vp->on_cursor->text_len)
+            return 0;
+        if (vp->cursorx < vp->ncols) {
+            vp->cursorx += 1;
+        } else{
+            vp->xoffset += 1;
+        }
+        gap_buffer_move_gap(vp->on_cursor->gb, 1, D_RIGHT);
         break;
     default:
-        /* Something-something insert to miv_row gap_buffer */
+        gap_buffer_insert(vp->on_cursor->gb, temp, 1);
+        vp->on_cursor->text_len += 1;
+
+        if (vp->cursorx < vp->ncols) {
+            vp->cursorx += 1;
+        } else{
+            vp->xoffset += 1;
+        }
+
         break;
     }
+    
+    return 0;
 }

@@ -1,8 +1,10 @@
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <termios.h>
 
+#include "miv.h"
 #include "buffer.h"
 
 /*
@@ -11,17 +13,6 @@
  */
 
 static struct termios orig_termios;
-
-struct miv_viewport {
-    struct miv_row *top_on_screen;
-    struct miv_row *on_cursor;
-    unsigned int nrows;
-    unsigned int ncols;
-    unsigned int xoffset;
-    unsigned int yoffset;
-    unsigned int cursorx;
-    unsigned int cursory;
-};
 
 static void die(const char *s)
 {
@@ -58,8 +49,8 @@ static int get_cursor_position(unsigned int *rows, unsigned int *cols)
 
     if (write(STDOUT_FILENO, "\x1b[6n", 4) != 4) /* ANSI escape sequences: request cursor postion (reports as /x1b[#;#R ) */
         return -1;
-    while (i < sizeof(buf) - 1)
-    {
+
+    while (i < sizeof(buf) - 1) {
         if (read(STDIN_FILENO, &buf[i], 1) != 1)
             break;
         if (buf[i] == 'R')
@@ -99,27 +90,58 @@ struct miv_viewport *prepare_screen(struct miv_row *mr)
     struct miv_viewport *vp = malloc(sizeof(struct miv_viewport));
     vp->top_on_screen = mr;
     vp->on_cursor = mr;
+    gap_buffer_move_gap_to_start(vp->on_cursor->gb);
     get_screen_size(&vp->nrows, &vp->ncols);
     vp->xoffset = 0;
     vp->yoffset = 0;
     vp->cursorx = 1;
     vp->cursory = 1;
+
     write(STDOUT_FILENO, "\x1b[H", 3); /* ANSI escape sequences: Move cursor to the top left */
 
     return vp;
 }
 
-
-/* TODO: WIP, not final functionality */
-int render_screen(struct miv_row *mr_head)
+static void lazy_render_append(struct miv_viewport *vp, struct screen_buffer *sb)
 {
-    if (!mr_head)
-        return -1;
+    struct miv_row *curr_mr = vp->top_on_screen;
+    for (unsigned int i = 0; i < vp->nrows; ++i) {
+        if (!curr_mr)
+            break;
 
-    struct miv_row *mr = mr_head;
-    do {
-        printf("%s", gap_buffer_get_text(mr->gb)); 
-        mr = mr->next;
-    } while (mr);
+        screen_buffer_append(sb, "\x1b[K", 3);
+
+        char *text = gap_buffer_get_text(curr_mr->gb);
+        size_t text_len = curr_mr->text_len;
+        if (text + vp->xoffset > text + text_len - 1)
+            screen_buffer_append(sb, "\n", 1); 
+        else
+            screen_buffer_append(sb, &text[vp->xoffset], (vp->ncols < text_len - vp->xoffset) ? vp->ncols : text_len - vp->xoffset);
+
+        free(text);
+        curr_mr = curr_mr->next;
+    }
+}
+
+/*
+ * Lazy rendering
+ */
+int render_screen(struct miv_viewport *vp)
+{
+    if (!vp)
+        return -1;
+ 
+    struct screen_buffer sb = SCREEN_BUFFER_INIT;
+
+    screen_buffer_append(&sb, "\x1b[?25l\x1b[H", 9);
+    lazy_render_append(vp, &sb);
+    char tmp_buf[32];
+    snprintf(tmp_buf, sizeof(tmp_buf), "\x1b[%d;%dH\x1b[?25h", vp->cursory, vp->cursorx);
+    screen_buffer_append(&sb, tmp_buf, strlen(tmp_buf));
+
+    write(STDOUT_FILENO, sb.buffer, sb.len);
+    
+    screen_buffer_destroy(&sb);
+
     return 0;
 }

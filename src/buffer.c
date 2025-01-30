@@ -107,7 +107,21 @@ void gap_buffer_move_gap(struct gap_buffer *gb, size_t len, int direction)
         }
     }
 }
+void gap_buffer_move_gap_to_start(struct gap_buffer *gb)
+{
+    size_t left_length = gb->gap_left - gb->buffer;
+    gap_buffer_move_gap(gb, left_length, D_LEFT);
+}
+void gap_buffer_move_gap_to_end(struct gap_buffer *gb)
+{
+    size_t right_length = (gb->buffer + gb->buffer_size - 1 - gb->gap_right);
+    gap_buffer_move_gap(gb, right_length, D_RIGHT);
+}
 
+/* 
+ * WARNING: free char * when done 
+ * Dispose of \n
+ * */
 char *gap_buffer_get_text(struct gap_buffer *gb)
 {
     size_t left_length = (gb->gap_left - gb->buffer);
@@ -125,7 +139,7 @@ char *gap_buffer_get_text(struct gap_buffer *gb)
 
     return clear_text;
 }
-
+ 
 void gap_buffer_print(struct gap_buffer *gb)
 {
     char *c_ptr = gb->buffer;
@@ -179,4 +193,20 @@ void miv_row_destroy(struct miv_row *mr)
 
     gap_buffer_destroy(mr->gb);
     free(mr);    
+}
+
+int screen_buffer_append(struct screen_buffer *sb, char *text, size_t len)
+{
+    char *tmp_buf = realloc(sb->buffer, sb->len + len); 
+    if (!tmp_buf)
+        return -1;
+    memcpy(&tmp_buf[sb->len], text, len);
+    sb->buffer = tmp_buf;
+    sb->len += len;
+    return 0;
+}
+
+void screen_buffer_destroy(struct screen_buffer *sb)
+{
+    free(sb->buffer);
 }

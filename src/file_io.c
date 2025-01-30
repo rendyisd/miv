@@ -11,7 +11,7 @@ static char *read_line(FILE *fp)
     char tmpbuf[32];
     
     size_t total_buf_len = 0;
-    int is_newline = 0;
+    unsigned short int is_newline = 0;
     while (is_newline == 0) {
         fgets(tmpbuf, 32, fp);
         size_t tmpbuf_len = strlen(tmpbuf);
@@ -53,12 +53,16 @@ struct miv_row *open_file_to_buffer(char *filename)
             mr = miv_row_new();
         
         char *line = read_line(fhandle);
-        gap_buffer_insert(mr->gb, line, strlen(line));
+        size_t line_len = strlen(line);
+        gap_buffer_insert(mr->gb, line, line_len);
+        mr->text_len = line_len;
         mr->prev = mr_prev;
         if(mr_prev)
             mr_prev->next = mr;
         
         mr_prev = mr;
+
+        free(line);
     }
     fclose(fhandle);
 

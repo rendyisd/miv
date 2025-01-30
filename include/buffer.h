@@ -27,9 +27,17 @@ struct gap_buffer {
 
 struct miv_row {
     struct gap_buffer *gb;
+    size_t text_len;
     struct miv_row *prev;
     struct miv_row *next;
 };
+
+struct screen_buffer {
+    char *buffer;
+    size_t len;
+};
+
+#define SCREEN_BUFFER_INIT {NULL, 0}
 
 /* Doubly linked list that represents each row. Each row is separated by a newline */
 
@@ -43,6 +51,8 @@ int gap_buffer_insert(struct gap_buffer *, char *, size_t);
 void gap_buffer_delete(struct gap_buffer *, size_t, int);
 /* Move gap, or cursor(?) in text editor context */
 void gap_buffer_move_gap(struct gap_buffer *, size_t, int);
+void gap_buffer_move_gap_to_start(struct gap_buffer *);
+void gap_buffer_move_gap_to_end(struct gap_buffer *);
 /* Get clear text from struct gap_buffer */
 char *gap_buffer_get_text(struct gap_buffer *);
 /* Print buffer content for debugging purpose */
@@ -53,5 +63,9 @@ void gap_buffer_debug(struct gap_buffer *);
 
 struct miv_row *miv_row_new();
 void miv_row_destroy(struct miv_row *);
+
+
+int screen_buffer_append(struct screen_buffer *, char *, size_t);
+void screen_buffer_destroy(struct screen_buffer *);
 
 #endif
