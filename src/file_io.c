@@ -16,10 +16,14 @@ static char *read_line(FILE *fp)
         fgets(tmpbuf, 32, fp);
         size_t tmpbuf_len = strlen(tmpbuf);
 
-        if (tmpbuf[tmpbuf_len - 1] == '\n' || feof(fp))
+        while(tmpbuf[tmpbuf_len - 1] == '\n' || tmpbuf[tmpbuf_len - 1] == '\r') {
+            is_newline = 1;
+            tmpbuf_len--;
+        }
+        if (feof(fp))
             is_newline = 1;
 
-        char *new_buf = realloc(buf, total_buf_len + tmpbuf_len + is_newline); // is_newline is used to reserve space for null terminator
+        char *new_buf = realloc(buf, total_buf_len + tmpbuf_len + 1); // +1 null terminator
         if (!new_buf) {
             free(buf);
             fprintf(stderr, "Failed to reallocate data for read_line.");

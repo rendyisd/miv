@@ -31,13 +31,13 @@ void enable_raw_mode()
 
     struct termios raw = orig_termios;
 
-    raw.c_lflag &= ~(ECHO | ICANON | ISIG); 
-    //raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
-    //raw.c_oflag &= ~(OPOST);
-    //raw.c_cflag |= (CS8);
-    //raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
-    //raw.c_cc[VMIN] = 1;
-    //raw.c_cc[VTIME] = 0;
+    //raw.c_lflag &= ~(ECHO | ICANON | ISIG); 
+    raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+    raw.c_oflag &= ~(OPOST);
+    raw.c_cflag |= (CS8);
+    raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+    raw.c_cc[VMIN] = 1;
+    raw.c_cc[VTIME] = 0;
 
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
@@ -102,30 +102,42 @@ struct miv_viewport *prepare_screen(struct miv_row *mr)
     return vp;
 }
 
-static void lazy_render_append(struct miv_viewport *vp, struct screen_buffer *sb)
+static void screen_buffer_lazy_render(struct miv_viewport *vp, struct screen_buffer *sb)
 {
     struct miv_row *curr_mr = vp->top_on_screen;
     for (unsigned int i = 0; i < vp->nrows; ++i) {
-        if (!curr_mr)
-            break;
-
         screen_buffer_append(sb, "\x1b[K", 3);
+        if (!curr_mr) { 
+            screen_buffer_append(sb, "\r\n", 2);
+            continue;
+        }
 
         char *text = gap_buffer_get_text(curr_mr->gb);
+        if (!text)
+            return;
         size_t text_len = curr_mr->text_len;
-        if (text + vp->xoffset > text + text_len - 1)
-            screen_buffer_append(sb, "\n", 1); 
-        else
-            screen_buffer_append(sb, &text[vp->xoffset], (vp->ncols < text_len - vp->xoffset) ? vp->ncols : text_len - vp->xoffset);
+        size_t remaining_text = (text_len < vp->xoffset) ? 0 : text_len - vp->xoffset;
+        size_t size_to_append = (text_len > vp->ncols) ? vp->ncols : remaining_text;
+
+        screen_buffer_append(sb, &text[vp->xoffset], size_to_append);
 
         free(text);
+
         curr_mr = curr_mr->next;
+
+        screen_buffer_append(sb, "\r\n", 2);
     }
 }
 
-/*
- * Lazy rendering
- */
+int cursor_debug(struct miv_viewport *vp, struct screen_buffer *sb)
+{
+    char tmp_buf[64];
+    snprintf(tmp_buf, sizeof(tmp_buf), "X: %d | Y: %d | X offset: %d | Y offset: %d\r\nstrlen: %zu", vp->cursorx, vp->cursory, vp->xoffset, vp->yoffset, vp->on_cursor->text_len);
+    screen_buffer_append(sb, tmp_buf, strlen(tmp_buf));
+
+    return 0;
+}
+
 int render_screen(struct miv_viewport *vp)
 {
     if (!vp)
@@ -134,7 +146,9 @@ int render_screen(struct miv_viewport *vp)
     struct screen_buffer sb = SCREEN_BUFFER_INIT;
 
     screen_buffer_append(&sb, "\x1b[?25l\x1b[H", 9);
-    lazy_render_append(vp, &sb);
+    screen_buffer_lazy_render(vp, &sb);
+    cursor_debug(vp, &sb);
+    
     char tmp_buf[32];
     snprintf(tmp_buf, sizeof(tmp_buf), "\x1b[%d;%dH\x1b[?25h", vp->cursory, vp->cursorx);
     screen_buffer_append(&sb, tmp_buf, strlen(tmp_buf));
@@ -145,3 +159,4 @@ int render_screen(struct miv_viewport *vp)
 
     return 0;
 }
+

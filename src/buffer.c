@@ -115,6 +115,8 @@ void gap_buffer_move_gap_to_start(struct gap_buffer *gb)
 void gap_buffer_move_gap_to_end(struct gap_buffer *gb)
 {
     size_t right_length = (gb->buffer + gb->buffer_size - 1 - gb->gap_right);
+    //if (gb->buffer[gb->buffer_size - 1] == '\n' && right_length > 0)
+    //    right_length--;
     gap_buffer_move_gap(gb, right_length, D_RIGHT);
 }
 
@@ -127,6 +129,8 @@ char *gap_buffer_get_text(struct gap_buffer *gb)
     size_t left_length = (gb->gap_left - gb->buffer);
     size_t right_length = (gb->buffer + gb->buffer_size - 1 - gb->gap_right);
     size_t text_length = left_length + right_length;
+    if (text_length == 0)
+        return NULL;
     
     char *clear_text = malloc(text_length + 1); // Include null terminator
     if (!clear_text) {

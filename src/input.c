@@ -80,25 +80,29 @@ static int read_keypress()
 int handle_keypress(struct miv_viewport *vp)
 {
     int c = read_keypress();
-    char temp[2];
-    snprintf(temp, 2, "%c", c);
     
     /* TODO: Newline, also if done in the middle of a line, move right content to newline */
     switch (c) {
     case KEY_BACKSPACE:
+        /* TODO: CHECK FOR NEWLINE CASE */
         break;
     case KEY_TAB:
         break;
     case KEY_ENTER:
         break;
     case KEY_DELETE:
+        /* TODO: CHECK FOR NEWLINE CASE */
+        exit(EXIT_SUCCESS); // For debugging purpose
         break;
     case KEY_HOME:
-        exit(EXIT_SUCCESS); // For debugging purpose
-        /* Move cursor to start of line */
+        vp->cursorx = 1;
+        vp->xoffset = 0;
+        gap_buffer_move_gap_to_start(vp->on_cursor->gb);
         break;
     case KEY_END:
-        /* Move  cursor to end of line */
+        vp->cursorx = (vp->on_cursor->text_len < vp->ncols) ? vp->on_cursor->text_len + 1 : vp->ncols;
+        vp->xoffset = (vp->on_cursor->text_len < vp->ncols) ? 0 : vp->on_cursor->text_len - vp->ncols + 1;
+        gap_buffer_move_gap_to_end(vp->on_cursor->gb);
         break;
     case KEY_PAGEUP:
         /* */
@@ -123,7 +127,7 @@ int handle_keypress(struct miv_viewport *vp)
         gap_buffer_move_gap(vp->on_cursor->gb, 1, D_LEFT);
         break;
     case KEY_ARROW_RIGHT:
-        if (vp->xoffset + vp->cursorx >= vp->on_cursor->text_len)
+        if (vp->xoffset + vp->cursorx >= vp->on_cursor->text_len + 1)
             return 0;
         if (vp->cursorx < vp->ncols) {
             vp->cursorx += 1;
@@ -132,7 +136,9 @@ int handle_keypress(struct miv_viewport *vp)
         }
         gap_buffer_move_gap(vp->on_cursor->gb, 1, D_RIGHT);
         break;
-    default:
+    default: ;
+        char temp[2];
+        snprintf(temp, 2, "%c", c);
         gap_buffer_insert(vp->on_cursor->gb, temp, 1);
         vp->on_cursor->text_len += 1;
 
