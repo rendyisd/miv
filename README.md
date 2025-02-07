@@ -1,7 +1,7 @@
 # Miv
-WIP. I don't know what to do, might aswell just write something.
+WIP.
 
-Text editor on the terminal, made with gap buffer. Has nothing to do with vim at all. 
+Text editor on the terminal, made with gap buffer + doubly linked list. Has nothing to do with vim at all. 
 Not even designed like vim(?). I had to just give it a name and came up with backward vim, miv.
 Just a personal project for self salvation.
 
