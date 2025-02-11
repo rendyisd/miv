@@ -67,7 +67,7 @@ static int get_cursor_position(unsigned int *rows, unsigned int *cols)
     return 0;
 }
 
-static int get_screen_size(unsigned int *rows, unsigned int *cols)
+int get_screen_size(unsigned int *rows, unsigned int *cols)
 {
     if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B", 12) != 12) /* ANSI escape sequences: moves cursor 999 right and 999 down */
         return -1;
@@ -132,7 +132,7 @@ static void screen_buffer_lazy_render(struct miv_viewport *vp, struct screen_buf
 int cursor_debug(struct miv_viewport *vp, struct screen_buffer *sb)
 {
     char tmp_buf[64];
-    snprintf(tmp_buf, sizeof(tmp_buf), "X: %d | Y: %d | X offset: %d | Y offset: %d\r\nstrlen: %zu", vp->cursorx, vp->cursory, vp->xoffset, vp->yoffset, vp->on_cursor->text_len);
+    snprintf(tmp_buf, sizeof(tmp_buf), "\x1b[KX: %d | Y: %d | X offset: %d | Y offset: %d\r\n\x1b[Kstrlen: %zu", vp->cursorx, vp->cursory, vp->xoffset, vp->yoffset, vp->on_cursor->text_len);
     screen_buffer_append(sb, tmp_buf, strlen(tmp_buf));
 
     return 0;
@@ -145,13 +145,16 @@ int render_screen(struct miv_viewport *vp)
  
     struct screen_buffer sb = SCREEN_BUFFER_INIT;
 
-    screen_buffer_append(&sb, "\x1b[?25l\x1b[H", 9);
+    screen_buffer_append(&sb, "\x1b[?25l", 6);
+    screen_buffer_append(&sb, "\x1b[H", 4);
     screen_buffer_lazy_render(vp, &sb);
-    cursor_debug(vp, &sb);
+    //cursor_debug(vp, &sb);
     
     char tmp_buf[32];
-    snprintf(tmp_buf, sizeof(tmp_buf), "\x1b[%d;%dH\x1b[?25h", vp->cursory, vp->cursorx);
+    snprintf(tmp_buf, sizeof(tmp_buf), "\x1b[%d;%dH", vp->cursory, vp->cursorx);
     screen_buffer_append(&sb, tmp_buf, strlen(tmp_buf));
+
+    screen_buffer_append(&sb, "\x1b[?25h", 6);
 
     write(STDOUT_FILENO, sb.buffer, sb.len);
     

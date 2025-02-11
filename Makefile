@@ -19,3 +19,18 @@ $(EXEC): $(OBJ)
 
 clean:
 	rm -rf build/
+
+#BUILD := debug
+#BUILD_DIR := ${CURDIR}/build/${BUILD}
+#
+#CC := gcc
+#AR := ar
+#
+#CFLAGS.debug := -O0 -g -fstack-protector-all
+#CFLAGS.release := -O3 -DNDEBUG
+#CFLAGS.common := -Wall -Wextra -Werror -std=c11
+#CFLAGS := ${CFLAGS.common} ${CFLAGS.${BUILD}}
+#
+#LDFLAGS.debug :=
+#LDFLAGS.release :=
+#LDFLAGS

@@ -77,6 +77,50 @@ static int read_keypress()
     return first_c;
 }
 
+void move_cursor(struct miv_viewport *vp, int key)
+{
+    switch (key) {
+    case KEY_ARROW_UP:
+        break;
+
+    case KEY_ARROW_DOWN:
+        if (!vp->on_cursor->next)
+            exit(EXIT_FAILURE);
+
+        if (vp->cursory < vp->nrows)
+            vp->cursory += 1;
+        else
+            vp->yoffset += 1;
+        
+        vp->on_cursor = vp->on_cursor->next;
+        break;
+
+    case KEY_ARROW_LEFT:
+        if (vp->xoffset == 0 && vp->cursorx == 1)
+            break;
+
+        if (vp->cursorx > 1)
+            vp->cursorx -= 1;
+        else if (vp->xoffset > 0)
+            vp->xoffset -= 1;
+
+        gap_buffer_move_gap(vp->on_cursor->gb, 1, D_LEFT);
+        break;
+
+    case KEY_ARROW_RIGHT:
+        if (vp->xoffset + vp->cursorx >= vp->on_cursor->text_len + 1)
+            return;
+
+        if (vp->cursorx < vp->ncols)
+            vp->cursorx += 1;
+        else
+            vp->xoffset += 1;
+        
+        gap_buffer_move_gap(vp->on_cursor->gb, 1, D_RIGHT);
+        break;
+    }
+}
+
 int handle_keypress(struct miv_viewport *vp)
 {
     int c = read_keypress();
@@ -94,48 +138,34 @@ int handle_keypress(struct miv_viewport *vp)
         /* TODO: CHECK FOR NEWLINE CASE */
         exit(EXIT_SUCCESS); // For debugging purpose
         break;
+
     case KEY_HOME:
         vp->cursorx = 1;
         vp->xoffset = 0;
         gap_buffer_move_gap_to_start(vp->on_cursor->gb);
         break;
+
     case KEY_END:
         vp->cursorx = (vp->on_cursor->text_len < vp->ncols) ? vp->on_cursor->text_len + 1 : vp->ncols;
         vp->xoffset = (vp->on_cursor->text_len < vp->ncols) ? 0 : vp->on_cursor->text_len - vp->ncols + 1;
         gap_buffer_move_gap_to_end(vp->on_cursor->gb);
         break;
+
     case KEY_PAGEUP:
         /* */
         break;
+
     case KEY_PAGEDOWN:
         /* */
         break;
+
     case KEY_ARROW_UP:
-        /* */
-        break;
     case KEY_ARROW_DOWN:
-        /* */
-        break;
     case KEY_ARROW_LEFT:
-        if (vp->xoffset == 0 && vp->cursorx == 1)
-            return 0;
-        if (vp->cursorx > 1) {
-            vp->cursorx -= 1;
-        } else if (vp->xoffset > 0) {
-            vp->xoffset -= 1;
-        }
-        gap_buffer_move_gap(vp->on_cursor->gb, 1, D_LEFT);
-        break;
     case KEY_ARROW_RIGHT:
-        if (vp->xoffset + vp->cursorx >= vp->on_cursor->text_len + 1)
-            return 0;
-        if (vp->cursorx < vp->ncols) {
-            vp->cursorx += 1;
-        } else{
-            vp->xoffset += 1;
-        }
-        gap_buffer_move_gap(vp->on_cursor->gb, 1, D_RIGHT);
+        move_cursor(vp, c);
         break;
+
     default: ;
         char temp[2];
         snprintf(temp, 2, "%c", c);

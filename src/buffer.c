@@ -180,7 +180,9 @@ struct miv_row *miv_row_new()
         free(mr);
         return NULL;
     }
-
+    mr->text_len = 0;
+    mr->next = NULL;
+    mr->prev = NULL;
     return mr;
 }
 
@@ -199,7 +201,7 @@ void miv_row_destroy(struct miv_row *mr)
     free(mr);    
 }
 
-int screen_buffer_append(struct screen_buffer *sb, char *text, size_t len)
+int screen_buffer_append(struct screen_buffer *sb, const char *text, size_t len)
 {
     char *tmp_buf = realloc(sb->buffer, sb->len + len); 
     if (!tmp_buf)

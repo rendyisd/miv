@@ -17,6 +17,7 @@ struct miv_viewport {
 };
 
 void enable_raw_mode();
+int get_screen_size(unsigned int *, unsigned int *);
 struct miv_viewport *prepare_screen(struct miv_row *);
 int render_screen(struct miv_viewport *);
 

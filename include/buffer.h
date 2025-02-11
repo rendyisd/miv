@@ -65,7 +65,7 @@ struct miv_row *miv_row_new();
 void miv_row_destroy(struct miv_row *);
 
 
-int screen_buffer_append(struct screen_buffer *, char *, size_t);
+int screen_buffer_append(struct screen_buffer *, const char *, size_t);
 void screen_buffer_destroy(struct screen_buffer *);
 
 #endif
