@@ -9,32 +9,32 @@
 #define D_RIGHT 2
 
 /*
-      The entirety of the struct gap_buffer
-      _______________________________
-     |                               |
-     Hello, ____________________world!
-            ^                  ^
-            |                  |
-         gap_left          gap_right
+   The entirety of the struct gap_buffer
+    _______________________________
+   |                               |
+   Hello, ____________________world!
+          ^                  ^
+          |                  |
+       gap_left          gap_right
 */
 
 struct gap_buffer {
-    char *buffer;
-    size_t buffer_size;
-    char *gap_left;
-    char *gap_right;
+        char *buffer;
+        size_t buffer_size;
+        char *gap_left;
+        char *gap_right;
 };
 
 struct miv_row {
-    struct gap_buffer *gb;
-    size_t text_len;
-    struct miv_row *prev;
-    struct miv_row *next;
+        struct gap_buffer *gb;
+        size_t text_len;
+        struct miv_row *prev;
+        struct miv_row *next;
 };
 
 struct screen_buffer {
-    char *buffer;
-    size_t len;
+        char *buffer;
+        size_t len;
 };
 
 #define SCREEN_BUFFER_INIT {NULL, 0}
