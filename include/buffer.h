@@ -50,7 +50,8 @@ int gap_buffer_insert(struct gap_buffer *, char *, size_t);
 /* Delete text of size_t, with D_LEFT and D_RIGHT to delete text to the left/right side of gap */
 void gap_buffer_delete(struct gap_buffer *, size_t, int);
 /* Move gap, or cursor(?) in text editor context */
-void gap_buffer_move_gap(struct gap_buffer *, size_t, int);
+void gap_buffer_move_gap_relative(struct gap_buffer *, size_t, int);
+void gap_buffer_move_gap_absolute(struct gap_buffer *, size_t);
 void gap_buffer_move_gap_to_start(struct gap_buffer *);
 void gap_buffer_move_gap_to_end(struct gap_buffer *);
 /* Get clear text from struct gap_buffer */

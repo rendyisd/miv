@@ -87,7 +87,7 @@ void gap_buffer_delete(struct gap_buffer *gb, size_t len, int direction)
         }
 } 
 
-void gap_buffer_move_gap(struct gap_buffer *gb, size_t len, int direction)
+void gap_buffer_move_gap_relative(struct gap_buffer *gb, size_t len, int direction)
 {
         if (direction == D_LEFT) {
                 if (gb->gap_left - len >= gb->buffer) {
@@ -107,17 +107,43 @@ void gap_buffer_move_gap(struct gap_buffer *gb, size_t len, int direction)
                 }
         }
 }
+
+void gap_buffer_move_gap_absolute(struct gap_buffer *gb, size_t gap_start_idx)
+{
+        size_t gap_size = gb->gap_right - gb->gap_left + 1;  
+        char *new_gap_right = &gb->buffer[gap_start_idx + gap_size - 1]; 
+
+        if (new_gap_right > &gb->buffer[gb->buffer_size - 1])
+                return;
+
+        char *new_gap_left = &gb->buffer[gap_start_idx];
+        size_t shift_len = 0;
+        int direction = 0;
+        if (new_gap_left == gb->gap_left) {
+                return;
+        } else if (new_gap_left > gb->gap_left) {
+                shift_len = new_gap_left - gb->gap_left; 
+                direction = D_RIGHT;
+        } else if (new_gap_left < gb->gap_left) {
+                shift_len = gb->gap_left - new_gap_left;
+                direction = D_LEFT;
+        }
+
+        gap_buffer_move_gap_relative(gb, shift_len, direction);
+}
+
 void gap_buffer_move_gap_to_start(struct gap_buffer *gb)
 {
         size_t left_length = gb->gap_left - gb->buffer;
-        gap_buffer_move_gap(gb, left_length, D_LEFT);
+        gap_buffer_move_gap_relative(gb, left_length, D_LEFT);
 }
+
 void gap_buffer_move_gap_to_end(struct gap_buffer *gb)
 {
         size_t right_length = (gb->buffer + gb->buffer_size - 1 - gb->gap_right);
         //if (gb->buffer[gb->buffer_size - 1] == '\n' && right_length > 0)
         //    right_length--;
-        gap_buffer_move_gap(gb, right_length, D_RIGHT);
+        gap_buffer_move_gap_relative(gb, right_length, D_RIGHT);
 }
 
 /* 

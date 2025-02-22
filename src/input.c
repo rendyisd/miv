@@ -77,7 +77,7 @@ static int read_keypress()
         return first_c;
 }
 
-void move_cursor(struct miv_viewport *vp, int key)
+void arrow_move_cursor(struct miv_viewport *vp, int key)
 {
         switch (key) {
                 case KEY_ARROW_UP:
@@ -92,6 +92,12 @@ void move_cursor(struct miv_viewport *vp, int key)
                         }
 
                         vp->on_cursor = vp->on_cursor->prev;
+
+                        if (vp->cursorx > vp->on_cursor->text_len + 1)
+                                vp->cursorx = vp->on_cursor->text_len + 1;
+
+                        gap_buffer_move_gap_absolute(vp->on_cursor->gb, vp->cursorx - 1);
+
                         break;
 
                 case KEY_ARROW_DOWN:
@@ -106,6 +112,11 @@ void move_cursor(struct miv_viewport *vp, int key)
                         }
 
                         vp->on_cursor = vp->on_cursor->next;
+
+                        if (vp->cursorx > vp->on_cursor->text_len + 1)
+                                vp->cursorx = vp->on_cursor->text_len + 1;
+
+                        gap_buffer_move_gap_absolute(vp->on_cursor->gb, vp->cursorx - 1);
                         break;
 
                 case KEY_ARROW_LEFT:
@@ -117,7 +128,7 @@ void move_cursor(struct miv_viewport *vp, int key)
                         else if (vp->xoffset > 0)
                                 vp->xoffset--;
 
-                        gap_buffer_move_gap(vp->on_cursor->gb, 1, D_LEFT);
+                        gap_buffer_move_gap_relative(vp->on_cursor->gb, 1, D_LEFT);
                         break;
 
                 case KEY_ARROW_RIGHT:
@@ -129,7 +140,7 @@ void move_cursor(struct miv_viewport *vp, int key)
                         else
                                 vp->xoffset++;
 
-                        gap_buffer_move_gap(vp->on_cursor->gb, 1, D_RIGHT);
+                        gap_buffer_move_gap_relative(vp->on_cursor->gb, 1, D_RIGHT);
                         break;
         }
 }
@@ -159,8 +170,10 @@ int handle_keypress(struct miv_viewport *vp)
                         break;
 
                 case KEY_END:
-                        vp->cursorx = (vp->on_cursor->text_len < vp->ncols) ? vp->on_cursor->text_len + 1 : vp->ncols;
-                        vp->xoffset = (vp->on_cursor->text_len < vp->ncols) ? 0 : vp->on_cursor->text_len - vp->ncols + 1;
+                        vp->cursorx = (vp->on_cursor->text_len < vp->ncols) ? \
+                                      vp->on_cursor->text_len + 1 : vp->ncols;
+                        vp->xoffset = (vp->on_cursor->text_len < vp->ncols) ? \
+                                      0 : vp->on_cursor->text_len - vp->ncols + 1;
                         gap_buffer_move_gap_to_end(vp->on_cursor->gb);
                         break;
 
@@ -176,7 +189,7 @@ int handle_keypress(struct miv_viewport *vp)
                 case KEY_ARROW_DOWN:
                 case KEY_ARROW_LEFT:
                 case KEY_ARROW_RIGHT:
-                        move_cursor(vp, c);
+                        arrow_move_cursor(vp, c);
                         break;
 
                 default: ;
